@@ -17,19 +17,26 @@
 %include 'mio.inc'
 
 global main
+global ReadStr
+global WriteStr
+global ReadLnStr
+global WriteLnStr
+global NewLine
 
 section .text
 
 ; beolvas egy karlancot
 ReadStr:
-	xor 	ecx,ecx
-
 .ciklus:
 	call    mio_readchar
 	cmp		al,13
 	je		.vege
 	call	mio_writechar
-	inc		ecx
+
+	cmp		ecx,0
+	je		.ciklus
+
+	dec		ecx
 
 	cmp		al,8
 	jne		.ugras
@@ -38,10 +45,8 @@ ReadStr:
 	call	mio_writechar
 	mov		al,8
 	call	mio_writechar
-	;cmp		edi,edx
 
-	dec		edi
-	dec		ecx
+	inc		ecx
 	je		.ciklus
 
 .ugras:
@@ -66,20 +71,83 @@ WriteStr:
 .vege:
 	ret
 
-main:
-	mov		edi,a
-	call 	ReadStr
+ReadLnStr:
+.ciklus:
+	call    mio_readchar
+	cmp		al,13
+	je		.vege
+	call	mio_writechar
+
+	cmp		ecx,0
+	je		.ciklus
+
+	dec		ecx
+
+	cmp		al,8
+	jne		.ugras
+
+	mov		al,' '
+	call	mio_writechar
+	mov		al,8
+	call	mio_writechar
+
+	inc		ecx
+	je		.ciklus
+
+.ugras:
+	stosb
+	jmp		.ciklus
+
+.vege:
+	xor		al,al
+	stosb
 
 	call	mio_writeln
 
+	ret
+
+WriteLnStr:
+
+.ciklus:
+	lodsb
+	cmp		al,0
+	je		.vege
+	call	mio_writechar
+	jmp		.ciklus
+
+.vege:
+	call	mio_writeln
+
+	ret
+
+NewLine:
+	mov     al, 13
+  call    mio_writechar
+  mov     al, 10
+  call    mio_writechar
+
+	ret
+
+main:
+	mov		edi,a
+	mov		ecx, 4
+	call 	ReadStr
+
+	call	NewLine
+
 	mov		esi,a
 	call	WriteStr
+
+	call	NewLine
+
+	mov		edi,a
+	mov		ecx, 5
+	call 	ReadLnStr
+
+	mov		esi,a
+	call	WriteLnStr
 
 	ret
 
 section .bss
 	a resb 256
-
-section .data
-	uzenet1 db 'A = ', 0
-	uzenet2 db 'B = ', 0
