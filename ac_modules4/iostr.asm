@@ -16,7 +16,7 @@
 
 %include 'mio.inc'
 
-global main
+
 global ReadStr
 global WriteStr
 global ReadLnStr
@@ -127,27 +127,6 @@ NewLine:
   call    mio_writechar
 
 	ret
-
-main:
-	mov		edi,a
-	mov		ecx, 4
-	call 	ReadStr
-
-	call	NewLine
-
-	mov		esi,a
-	call	WriteStr
-
-	call	NewLine
-
-	mov		edi,a
-	mov		ecx, 5
-	call 	ReadLnStr
-
-	mov		esi,a
-	call	WriteLnStr
-
-	ret
-
+	
 section .bss
 	a resb 256

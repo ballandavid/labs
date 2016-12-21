@@ -1,4 +1,4 @@
-nasm -f win32 strings.asm
-nlink strings.obj -lmio -o strings.exe
+nasm -f win32 ionum.asm
+nlink ionum.obj -lmio -o ionum.exe
 
-strings.exe
+ionum.exe
