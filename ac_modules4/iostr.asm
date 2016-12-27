@@ -127,6 +127,6 @@ NewLine:
   call    mio_writechar
 
 	ret
-	
+
 section .bss
 	a resb 256

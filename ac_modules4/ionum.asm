@@ -25,88 +25,78 @@
 
 
 %include 'mio.inc'
+%include 'iostr.inc'
 
-global main
+global ReadInt
+global WriteInt
+global ReadBin
+global WriteBin
+global ReadHex
+global WriteHex
 
 section .text
 
 ReadInt:
-	xor		eax, eax ;lenullazom eax-et
-	xor		ebx, ebx ;lenullazom ebx-et
-	xor		dl, dl ;lenullazom mert ebben fogom a hibat megjegyezni hogy volt-e
-	mov 	ecx,1	;feltetelezem hogy a szamom pozitiv
+xor		eax, eax ;lenullazom eax-et
+xor		ebx, ebx ;lenullazom ebx-et
+xor		ecx,ecx
+mov		edx,1
 
-	call	mio_readchar ;beolvasom az elso karaktert
-	call	mio_writechar
+mov		ecx,255
+mov		edi,a
+call	ReadStr
 
-	cmp		eax, '-'	;ha az elso karakter egy minusz
-	je		.negativ_Szam
+mov		esi,a
+xor		edi,edi
 
-	jmp		.pozitiv_Szam ;ha nem negativ akkor ugrok a pozitiv ciklusomhoz
+lodsb
 
-.negativ_Szam:
-	mov		ecx,-1 ;negativ szam eseten ecx -1 lesz
-	call	mio_readchar
-	call	mio_writechar
+cmp		al,'-'
+jne		.pozitiv
+mov		edx,0
 
-.pozitiv_Szam:
+.loop:
+xor 	eax,eax
+lodsb
 
-.ciklus:
+.pozitiv:
 
-	cmp		eax, 13		;megnezi ha egyenlo-e enter-vel
-	je		.vege		;jump if equal. ha entert olvastam be ugrik a vegere, vege a beolvasasnak
+cmp 	al,0
+je		.vege
 
-	cmp		al,8
-	jne		.ugras
-	mov		al,' '
-	call	mio_writechar
-	mov		al,8
-	call	mio_writechar
-	cmp		ebx,0	;ellenorzom ha a backspace nincs-e a legelejen
-	je		.ciklus
-	dec		ebx
-	jmp		.vissza_hiba
+cmp		al,'0'
+jl		.hiba
+cmp		al,'9'
+jg		.hiba
 
-.ugras:
+imul	ebx,10
+sub		al,'0'
+add		ebx,eax
 
-; megnezem ha nem szamjegyet olvastam be
-	cmp		eax, '9'
-	jg		.hiba		;jump if greater
-	cmp		eax, '0'
-	jl		.hiba	 	;jump if less
-
-	sub		eax, '0'
-	imul	ebx, 10
-	add		ebx, eax
-
-.vissza_hiba:
-
-	call	mio_readchar
-	call	mio_writechar
-
-	jmp		.ciklus
+jmp		.loop
 
 .hiba:
-	mov		dl,1
-	jmp		.vissza_hiba
+mov		edi,1
 
 .vege:
-	cmp		ecx,-1
-	je		.negativ_sz
+cmp		edx,1
+je		.ugras
+neg		ebx
 
-	jmp 	.negativ_sz_vege
+.ugras:
+mov		eax,ebx
 
-.negativ_sz:
-	neg		ebx
-	jmp		.negativ_sz_vege
+call NewLine
 
-.negativ_sz_vege:
+cmp		edi,1
+je		.ugras1
+clc
+ret
 
-	call	mio_writeln
+.ugras1:
+stc
 
-	mov 	eax,ebx
-
-	ret
+ret
 
 WriteInt:
 
@@ -154,14 +144,291 @@ WriteInt:
 		pop 	ebx
 		pop 	eax
 
+		call	NewLine
+
 		ret
 
-main:
-	call	ReadInt
+ReadHex:
+		xor		ebx, ebx
+		xor		eax, eax
 
-	call	WriteInt
+		mov		edi,a
+		call	ReadStr ; beolvasom a Hexa szamot mint egy karlancot
+		mov		esi,a ; esi-t raallitom a karlanc elejere
+		xor		edi,edi
 
-	ret
+.ciklus:
+		lodsb
+		cmp		al,0		;ha enter akkor ugrok a .vege cimkere s vege a beolvasasnak
+		je		.vege
 
-section .data
-	hiba_uzenet db 'Hiba',0
+		cmp		al, '0'
+		jl		.hiba		;ha kisebb mint '0' akkor egybol hibat adok
+		cmp		al, '9'
+		jg		.ellenorzes	;ha '9'-nel nagyobb a beolvasott karakter tovabb lepek a kovetkezo ellenorzesre
+
+		sub		al,'0'		;megkapom az al szambeli erteket
+		shl		ebx,4		;4 bittel eltolom a szamom hogy hozzaadjam a kovetkezot
+		add		ebx, eax	;hozzaadom az uj szamjegyet
+		jmp 	.ciklus
+
+.ellenorzes:
+		cmp		al, 'F'		;ellenorzom ha nagyobb-e 'F'-nel. ha igen tovabb ellenorzok
+		jg		.ellenorzes2
+		cmp		al, 'A'
+		jl		.hiba
+
+		sub		al,55
+		shl		ebx,4
+		add		ebx, eax
+		jmp		.ciklus
+
+.ellenorzes2:				;megnezem ha kicsi betuk kozott van-e.
+		cmp		al, 'a'
+		jl		.hiba			;mindket esetben ugrok a hiba cimkehez
+		cmp		al, 'f'
+		jg		.hiba
+
+		sub		al,87
+		shl		ebx,4
+		add		ebx, eax
+		jmp		.ciklus
+
+.hiba:
+		mov		edi,1
+
+.vege:
+		mov		eax,ebx ; elhelyezem az eax-ben az eredmenyem
+
+		cmp		edi,1
+		je		.ugras
+		clc
+		ret
+
+.ugras:
+		stc
+		ret
+
+WriteHex:
+
+			push	eax
+			push 	ebx
+			push 	ecx
+			push 	edx
+
+			xor		eax, eax
+			xor		ecx, ecx
+			mov		eax, ebx
+			mov		ebx, 16		;16-val fogom osztani a szamom amig nem 0
+			push	dword -1
+
+
+			.ciklus1:
+				xor 	edx, edx
+				div	ebx
+
+				push	edx
+				inc 	ecx
+				test	eax, eax
+				cmp		eax, 0
+				jne		.ciklus1
+
+			mov		eax,'0'
+			call	mio_writechar
+			mov		eax,'x'
+			call	mio_writechar
+
+			mov		ebx,8		;1 byte-bol kell kivonjam hany osztas volt
+			sub		ebx,ecx		;ebx-be megkapom (8 - hany osztas)om volt
+			mov		ecx,ebx		;beteszem az ecx-be hogy annyiszor vegezzem el a ciklust
+
+			cmp		ecx,0
+			je		.ugor
+
+			mov		eax,'0'		;0-kat irok ki a szamom ele
+			.ciklus_nullak:
+				call	mio_writechar
+				dec		ecx
+
+				cmp		ecx,0
+				jg	.ciklus_nullak	;ecx-szer kiirom a 0-t a hexa szam ele
+
+			.ugor:
+
+			.ciklus2:
+				xor		eax,eax
+				pop		eax				; sorban kiveszem a verembol s megnezem ha 10 es 15 kozott van-e a szamom
+				cmp		eax, -1		;veszem az elemeket amig nem ures a verem
+				je		.vege
+
+				cmp		eax,10
+				je		.plusz_ertek_A
+
+				cmp		eax,11
+				je		.plusz_ertek_B
+
+				cmp		eax,12
+				je		.plusz_ertek_C
+
+				cmp		eax,13
+				je		.plusz_ertek_D
+
+				cmp		eax,14
+				je		.plusz_ertek_E
+
+				cmp		eax,15
+				je		.plusz_ertek_F
+
+				add		eax,'0'		;megkapom az eax szambeli erteket
+
+				.vissza:
+
+				call	mio_writechar
+				jmp		.ciklus2
+
+			.plusz_ertek_A:
+				xor		eax,eax
+				mov		eax,'A'
+				jmp		.vissza
+
+			.plusz_ertek_B:
+				xor		eax,eax
+				mov		eax,'B'
+				jmp		.vissza
+
+			.plusz_ertek_C:
+				xor		eax,eax
+				mov		eax,'C'
+				jmp		.vissza
+
+			.plusz_ertek_D:
+				xor		eax,eax
+				mov		eax,'D'
+				jmp		.vissza
+
+			.plusz_ertek_E:
+				xor		eax,eax
+				mov		eax,'E'
+				jmp		.vissza
+
+			.plusz_ertek_F:
+				xor		eax,eax
+				mov		eax,'F'
+				jmp		.vissza
+
+		.vege:
+
+			pop 	edx
+			pop 	ecx
+			pop 	ebx
+			pop 	eax
+			ret
+
+ReadBin:
+		mov		edi,a
+		call	ReadStr
+		mov		esi,a
+		xor		edi,edi
+		xor		ebx,ebx
+
+.loop:
+		lodsb
+
+		cmp		al,0
+		je		.vege
+
+		cmp		al,'0'
+		jl		.hiba
+		cmp		al,'1'
+		jg		.hiba
+
+		cmp		al,'1'
+		je		.egy
+
+		shl		ebx,1
+		jmp		.loop
+
+.egy:
+		add		ebx,1
+		shl		ebx,1
+		jmp		.loop
+
+.hiba:
+		mov		edi,1
+
+.vege:
+		mov		eax,ebx
+
+		cmp		edi,1
+		jne		.ugras
+		stc
+		ret
+
+.ugras:
+		clc
+
+		ret
+
+WriteBin:
+		mov		ecx,32 ;32szer hajtom vegere a kiiratast
+		mov		edx,28 ;ha a 28.ik bitnel leszek, kiirok szokozt
+		;mov		ebx,eax
+
+.loop:
+		cmp		ecx,0
+		je 		.vege
+
+		shl		ebx,1
+		jc		.egy
+		jmp		.nulla
+
+.egy:
+		mov		al,'1'
+		dec		ecx
+		call	mio_writechar
+		jmp		.loop
+
+.nulla:
+		mov		al,'0'
+		dec		ecx
+		call	mio_writechar
+		jmp		.loop
+
+.vege:
+
+		ret
+
+;main:
+;.hiba:
+;	call	ReadInt
+;	jnc		.nem_hiba
+;	jmp		.hiba
+;.nem_hiba:
+;
+;	call	WriteInt
+
+;.hiba_hex:
+;	call	ReadHex
+;	jnc		.nem_hiba_hex
+;	call	NewLine
+;	jmp		.hiba_hex
+;.nem_hiba_hex:
+
+;	call	NewLine
+
+;	call	WriteHex
+
+;	call	NewLine
+
+;	call	ReadBin
+
+;	call	NewLine
+
+;	call	WriteBin
+
+;	call	NewLine
+
+;	ret
+
+section .bss
+	a resb 256

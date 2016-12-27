@@ -22,6 +22,7 @@
 %include 'mio.inc'
 %include 'iostr.inc'
 %include 'strings.inc'
+%include 'ionum.inc'
 
 global main
 
@@ -38,8 +39,9 @@ main:
   mov   esi,a
   call  StrLen ;ha a string tobb mint 9 akkor
 
-  add   eax,'0'
-  call  mio_writechar
+  call  WriteInt
+  ;add   eax,'0'
+  ;call  mio_writechar
 
   call  NewLine
 
@@ -68,8 +70,9 @@ main:
   mov   esi,b
   call  StrLen ;ha a string tobb mint 9 akkor
 
-  add   eax,'0'
-  call  mio_writechar
+  call  WriteInt
+  ;add   eax,'0'
+  ;call  mio_writechar
 
   call  NewLine
 
@@ -108,8 +111,9 @@ main:
   mov   esi,c
   call  StrLen ;ha a string tobb mint 9 akkor
 
-  add   eax,'0'
-  call  mio_writechar
+  call  WriteInt
+  ;add   eax,'0'
+  ;call  mio_writechar
 
 ret
 
