@@ -1,0 +1,38 @@
+Task
+
+iopelda.asm has to do this:
+
+ReadInt (decimal number)
+WriteInt
+WriteHex
+WriteBin
+
+ReadHex (hex number)
+WriteInt
+WriteHex
+WriteBin
+
+ReadBin (binary number)
+WriteInt
+WriteHex
+WriteBin
+
+WriteInt (the sum of the three read numbers)
+WriteHex(the sum of the three read numbers)
+WriteBin(the sum of the three read number)
+
+Information:
+
+After Read functions the number has to be in EAX.
+Write functions have to write the number in EAX.
+
+iopelda.asm contains functions from ionum.asm
+(ReadInt, WriteInt, ReadBin, WriteBin, ReadHex, WriteHex)
+
+iopelda.asm contains functions from iostr.asm
+(ReadStr)
+
+Read functions should handle overflow.
+ReadStr should handle backspace.
+
+Backspace is not working yet!!!
