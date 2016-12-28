@@ -31,25 +31,29 @@ ReadStr:
 	call    mio_readchar
 	cmp		al,13
 	je		.vege
-	call	mio_writechar
 
 	cmp		ecx,0
 	je		.ciklus
 
-	dec		ecx
-
 	cmp		al,8
 	jne		.ugras
 
+	cmp		ecx,255		; do nothing if we read nothing so far
+	je		.ciklus
+
+	call	mio_writechar
 	mov		al,' '
 	call	mio_writechar
 	mov		al,8
 	call	mio_writechar
 
 	inc		ecx
-	je		.ciklus
+	dec 	edi
+	jmp		.ciklus
 
 .ugras:
+	call	mio_writechar		;only write the char now
+	dec		ecx
 	stosb
 	jmp		.ciklus
 
