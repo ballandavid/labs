@@ -38,7 +38,7 @@ ReadStr:
 	cmp		al,8
 	jne		.ugras
 
-	cmp		ecx,255		; do nothing if we read nothing so far
+	cmp		ecx,255		; megnezem ha a karlanc elejen vagyok
 	je		.ciklus
 
 	call	mio_writechar
@@ -52,9 +52,9 @@ ReadStr:
 	jmp		.ciklus
 
 .ugras:
-	call	mio_writechar		;only write the char now
-	dec		ecx
-	stosb
+	call	mio_writechar		;kiiratom a karaktert
+	dec		ecx ; csokkentem, mert egy karakter bekerult
+	stosb ; betolti oda ahova az edi mutat
 	jmp		.ciklus
 
 .vege:

@@ -33,6 +33,8 @@ global ReadBin
 global WriteBin
 global ReadHex
 global WriteHex
+global ReadInt64
+global WriteInt64
 
 section .text
 
@@ -84,7 +86,6 @@ je		.ugras
 neg		ebx
 
 .ugras:
-mov		eax,ebx
 
 call NewLine
 
@@ -95,7 +96,6 @@ ret
 
 .ugras1:
 stc
-
 ret
 
 WriteInt:
@@ -104,6 +104,8 @@ WriteInt:
 		push 	ebx
 		push 	ecx
 		push 	edx
+
+		mov		ebx,eax
 
 		cmp		ebx, 0		;nezzuk ha negativ volt
 		jl		.negativ
@@ -157,6 +159,8 @@ ReadHex:
 		mov		esi,a ; esi-t raallitom a karlanc elejere
 		xor		edi,edi
 
+		;call	WriteStr
+
 .ciklus:
 		lodsb
 		cmp		al,0		;ha enter akkor ugrok a .vege cimkere s vege a beolvasasnak
@@ -198,7 +202,6 @@ ReadHex:
 		mov		edi,1
 
 .vege:
-		mov		eax,ebx ; elhelyezem az eax-ben az eredmenyem
 
 		cmp		edi,1
 		je		.ugras
@@ -215,6 +218,8 @@ WriteHex:
 			push 	ebx
 			push 	ecx
 			push 	edx
+
+			;mov		ebx,eax
 
 			xor		eax, eax
 			xor		ecx, ecx
@@ -342,15 +347,16 @@ ReadBin:
 		cmp		al,'1'
 		jg		.hiba
 
+		shl		ebx,1 ; mindenfelekepp tolok balra
+
+		;dec		ecx
 		cmp		al,'1'
 		je		.egy
 
-		shl		ebx,1
-		jmp		.loop
+		jmp		.loop ; ha 0 nem csinalok semmit, mert balra tolassal kaptam egy 0-t
 
 .egy:
-		add		ebx,1
-		shl		ebx,1
+		add		ebx,1 ; ha 1, novelem a szamom
 		jmp		.loop
 
 .hiba:
@@ -358,6 +364,12 @@ ReadBin:
 
 .vege:
 		mov		eax,ebx
+
+		;cmp		ecx,223
+		;je		.jump
+		;mov		edi,1
+
+;.jump:
 
 		cmp		edi,1
 		jne		.ugras
@@ -398,6 +410,149 @@ WriteBin:
 
 		ret
 
+; 64-bit
+
+ReadInt64:
+		xor 	eax, eax				;edx:eax-ban az eredmeny
+		xor 	edx, edx
+
+		mov		edi, str_decimalis64
+		mov		ecx,255 ; a karlanc maximalis hossza
+		call	ReadStr ; beolvasom a szamom karlanc formajaban
+
+		mov 	esi, str_decimalis64
+		mov 	ecx, 10
+		xor 	ebx, ebx				;bl-be veszem ki a karaktereket
+
+		mov 	bl, [esi]
+		cmp 	bl, 0
+		je 		.vege
+		cmp 	bl, '-'
+		jne 		.ciklus
+
+		inc 	esi	;ha negativ tullepunk, majd a vegen lekezeljuk
+
+.ciklus:
+		mov 	bl, [esi]
+		inc 	esi
+
+		cmp		bl, 0
+		je		.ellenorzes
+		cmp 	bl, '0'
+		jl 		.hiba
+		cmp 	bl, '9'
+		jg 		.hiba
+
+		sub 		ebx, '0' ; ebx<--szamjegy
+
+		mov		edi, edx
+		mul		ecx
+		mov		[seged], edx
+		imul	edi, ecx
+		jo		.hiba
+
+		mov		edx, [seged]
+		add		edx, edi
+		jo		.hiba
+
+		add		eax, ebx
+		adc		edx, 0
+		jo		.hiba
+
+		jmp		.ciklus
+
+		.hiba:
+		mov 	edi, 1
+
+		.ellenorzes:
+		cmp 	edi, 1
+		je 		.vegehiba
+
+		mov 	esi, str_decimalis64		;elovesszuk az eredeti stringet, nezzuk ha - volt
+		mov 	bl, [esi]
+		cmp 	bl, '-'						;ellenorizzuk ha negativ volt a szam
+		jne 		.vege
+		;negativ:
+		not 		eax
+		not 		edx
+		inc 		eax
+		adc 		edx, 0
+
+		.vege:
+		pop 		ecx
+		pop 		ebx
+		clc
+		ret
+
+		.vegehiba:
+		pop 		ecx
+		pop 		ebx
+		stc
+		ret
+
+WriteInt64:
+			push 		ebx
+			push 		ecx
+			push 		eax
+			push		edx
+
+			mov 		ecx,10
+			push 		dword-1						;majd a verem vege ellenorzesere
+
+			cmp 		edx,0
+			jge 			.ciklus
+
+		;negativ
+			mov 		[seged], eax
+			mov 		eax, '-'
+			call 			mio_writechar
+			mov 		eax, [seged]
+
+			not 		eax
+			not 		edx
+			add 		eax,1
+			adc 		edx,0
+
+		.ciklus:
+			mov 		ebx,eax					;elmentjuk az also 32 bit-et
+			mov			eax,edx					;dolgozunk a felso 32 bit-el
+
+			xor 		edx, edx
+			div 		ecx							;elosszuk a felso 32 bit-et (EDX)
+			xchg 		eax,ebx					;felcsereljuk
+
+			div 		ecx							;elosszuk az also 32 bit-et (EAX)
+			push 		edx							;verembe a maradek
+			mov 		edx,ebx					;edx = felso 32 bit-et
+
+			cmp 		edx,0
+			je 			.also32
+
+			jmp 		.ciklus
+
+		.also32:
+			xor 		edx, edx
+			div 		ecx							;elosszuk csak az also 32 bit-et
+			push		edx
+			test 		eax, eax					;amig 0 nem lesz
+			jnz 		.also32
+
+
+		.verem:
+			pop 		eax
+			cmp			eax, -1
+			je 			.vege
+			add 		eax, '0'
+			call 		mio_writechar
+			jmp 		.verem
+
+		.vege:
+			pop 		edx
+			pop 		eax
+			pop 		ecx
+			pop 		ebx
+			ret
+
 ;main:
 ;.hiba:
 ;	call	ReadInt
@@ -432,3 +587,5 @@ WriteBin:
 
 section .bss
 	a resb 256
+	str_decimalis64 resb 256
+	seged resb 32

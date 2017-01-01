@@ -23,16 +23,28 @@ global  main
 
 section .text
 main:
+
+; 32-bit
+
 .hiba:
     mov   esi,uzenet1
     call  WriteStr
+    mov   ecx, 255 ; max hossz amekkora lehet a karlanc
     call	ReadInt
     jnc		.nem_hiba
+    mov   esi,uzenet_hiba
+    call  WriteLnStr
     jmp		.hiba
 .nem_hiba:
 
+
+    mov   [osz1], ebx ; az elso szamom amely az osszegbe kerul, elmentem
+    mov   eax,ebx
+    mov   [var_a],eax
+
     mov   esi,uzenet1
     call  WriteStr
+    mov   eax, [var_a]
     call  WriteInt
     mov   esi,uzenet2
     call  WriteStr
@@ -46,16 +58,24 @@ main:
 .hiba_hex:
     mov   esi,uzenet2
     call  WriteStr
+    mov   ecx,255 ; max hossz amekkora lehet a karlanc
     call	ReadHex
     jnc		.nem_hiba_hex
+    call  NewLine
+    mov   esi,uzenet_hiba
+    call  WriteLnStr
     jmp		.hiba_hex
 .nem_hiba_hex:
 
+    mov   [var_a],ebx
+    mov   [osz2], ebx
+
     call  NewLine
     mov   esi,uzenet1
     call  WriteStr
-    mov   ebx,eax
+    mov   eax, [var_a]
     call  WriteInt
+    ;mov   [osz2], eax ; a masodik szamom amely az osszegbe kerul, elmentem
     mov   esi,uzenet2
     call  WriteStr
     call  WriteHex
@@ -63,20 +83,30 @@ main:
     mov   esi,uzenet3
     call  WriteStr
     call  WriteBin
-    call  NewLine
+    ;call  NewLine
 
 .hiba_bin:
+    call  NewLine
     mov   esi,uzenet3
     call  WriteStr
+    mov   ecx,255 ; max hossz amekkora lehet a karlanc
     call	ReadBin
     jnc		.nem_hiba_bin
+    call  NewLine
+    mov   esi,uzenet_hiba
+    call  WriteStr
     jmp		.hiba_bin
 .nem_hiba_bin:
 
+    mov   [var_a],eax
+    mov   [osz3], ebx
+
     call  NewLine
     mov   esi,uzenet1
     call  WriteStr
+    mov   eax,[var_a]
     call  WriteInt
+    ;mov   [osz3], eax ; a harmadik szamom amely az osszegbe kerul, elmentem
     mov   esi,uzenet2
     call  WriteStr
     call  WriteHex
@@ -84,6 +114,67 @@ main:
     mov   esi,uzenet3
     call  WriteStr
     call  WriteBin
+    call  NewLine
+
+    ;osszeg kiiratas
+    mov   esi,uzenet4
+    call  WriteStr
+    call  NewLine
+
+    xor   eax,eax
+    xor   edx,edx
+    mov   eax,[osz1]
+    add   [osszeg],eax
+    call  WriteInt
+
+
+    mov   eax,[osz2]
+    add   [osszeg],eax
+    call  WriteInt
+
+    mov   eax,[osz3]
+    add   [osszeg],eax
+    call  WriteInt
+
+    mov   esi,uzenet1
+    call  WriteStr
+
+    mov   eax,[osszeg]
+    mov   ebx,[osszeg]
+    call  WriteInt
+
+    mov   esi,uzenet2
+    call  WriteStr
+
+    ;mov   eax,[osszeg]
+    call  WriteHex
+    call  NewLine
+
+    mov   esi,uzenet3
+    call  WriteStr
+
+    ;mov   eax,[osszeg]
+    call  WriteBin
+    call  NewLine
+
+    ; 64-bit
+    xor 		eax, eax
+  	xor 		ebx, ebx
+  	xor 		ecx, ecx
+  	xor 		edx, edx
+
+    mov   esi,uzenet1
+    call  WriteStr
+    call  ReadInt64
+
+    add 	ebx,eax
+  	adc 	ecx,0
+  	add		ecx,edx
+
+    call  NewLine
+    mov   esi,uzenet1
+    call  WriteStr
+    call  WriteInt64
     call  NewLine
 
     ret
@@ -92,6 +183,13 @@ section .bss
   a resb 256
 
 section .data
+  var_a dd 0
+  osz1 dd 0 ; az elso szam amelyiket osszeadom
+  osz2 dd 0 ; a masodik szam amelyiket osszeadom
+  osz3 dd 0 ; a harmadik szam amelyiket osszeadom
+  osszeg dd 0
   uzenet1 db '10-es szamrendszerben: ', 0
   uzenet2 db '16-os szamrendszerben: ', 0
   uzenet3 db '2-es szamrendszerben: ', 0
+  uzenet4 db 'Az osszeguk:', 0
+  uzenet_hiba db 'Hiba', 0
