@@ -22,6 +22,18 @@
 global  main
 
 section .text
+
+Write0x:
+	pusha
+
+	mov 	eax, '0'
+	call 		mio_writechar
+	mov 	eax, 'x'
+	call 		mio_writechar
+
+  popa
+	ret
+
 main:
 
 ; 32-bit
@@ -157,25 +169,105 @@ main:
     call  WriteBin
     call  NewLine
 
-    ; 64-bit
+; 64-bit
     xor 		eax, eax
   	xor 		ebx, ebx
   	xor 		ecx, ecx
   	xor 		edx, edx
 
+    ; INT read
     mov   esi,uzenet1
     call  WriteStr
     call  ReadInt64
 
-    add 	ebx,eax
-  	adc 	ecx,0
-  	add		ecx,edx
+    mov 	[e_d],edx
+    mov   [e_a],eax
 
     call  NewLine
     mov   esi,uzenet1
     call  WriteStr
     call  WriteInt64
     call  NewLine
+    mov 	esi, uzenet2
+  	call 	WriteStr
+  	call 	Write0x
+  	call 	WriteHex64
+  	call 	NewLine
+    mov 	esi, uzenet3
+  	call 	WriteStr
+  	call 	WriteBin64
+  	call 	NewLine
+
+    ; HEX read
+    mov   esi, uzenet2
+    call  WriteStr
+    call  ReadHex64
+
+    xor   ecx,ecx
+    add		[e_a],eax
+    adc 	ecx,0
+    add 	ecx,edx
+    mov   [e_d],ecx
+
+    call  NewLine
+    mov   esi, uzenet1
+    call  WriteStr
+    call  WriteInt64
+    call  NewLine
+    mov 	esi, uzenet2
+  	call 	WriteStr
+  	call 	Write0x
+  	call 	WriteHex64
+  	call 	NewLine
+    mov 	esi, uzenet3
+  	call 	WriteStr
+  	call 	WriteBin64
+  	call 	NewLine
+
+    ; BIN read
+    mov 	esi, uzenet3
+  	call 	WriteStr
+  	call 	ReadBin64
+
+    xor   ecx,ecx
+    add		[e_a],eax
+    adc 	ecx,0
+    add 	ecx,edx
+    mov   [e_d],ecx
+
+  	call 	NewLine
+  	mov 	esi, uzenet1
+  	call 	WriteStr
+  	call 	WriteInt64
+  	call 	NewLine
+    mov 	esi, uzenet2
+  	call 	WriteStr
+  	call 	WriteHex64
+  	call 	NewLine
+    mov 	esi, uzenet3
+  	call 	WriteStr
+  	call 	WriteBin64
+  	call 	NewLine
+
+    mov 	esi, uzenet4
+  	call 	WriteStr
+    call  NewLine
+    mov   edx,[e_d]
+    mov   eax,[e_a]
+
+    mov 	esi, uzenet1
+  	call 	WriteStr
+  	call 	WriteInt64
+  	call 	NewLine
+    mov 	esi, uzenet2
+  	call 	WriteStr
+    call  Write0x
+  	call 	WriteHex64
+  	call 	NewLine
+    mov 	esi, uzenet3
+  	call 	WriteStr
+  	call 	WriteBin64
+  	call 	NewLine
 
     ret
 
@@ -188,6 +280,8 @@ section .data
   osz2 dd 0 ; a masodik szam amelyiket osszeadom
   osz3 dd 0 ; a harmadik szam amelyiket osszeadom
   osszeg dd 0
+  e_a dd 0
+  e_d dd 0
   uzenet1 db '10-es szamrendszerben: ', 0
   uzenet2 db '16-os szamrendszerben: ', 0
   uzenet3 db '2-es szamrendszerben: ', 0

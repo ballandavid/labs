@@ -64,6 +64,7 @@ ReadStr:
 	ret
 
 WriteStr:
+	pusha
 
 .ciklus:
 	lodsb
@@ -73,6 +74,7 @@ WriteStr:
 	jmp		.ciklus
 
 .vege:
+	popa
 	ret
 
 ReadLnStr:
@@ -111,6 +113,7 @@ ReadLnStr:
 	ret
 
 WriteLnStr:
+	pusha
 
 .ciklus:
 	lodsb
@@ -122,14 +125,18 @@ WriteLnStr:
 .vege:
 	call	mio_writeln
 
+	popa
 	ret
 
 NewLine:
+	pusha
+
 	mov     al, 13
   call    mio_writechar
   mov     al, 10
   call    mio_writechar
 
+	popa
 	ret
 
 section .bss
