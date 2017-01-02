@@ -1,7 +1,7 @@
 ;nev: Ballan David-Lajos
 ;azonosito: bdim1597
 ;csoportszam: 511
-;feladat: L4_4a
+;feladat: L4_4a_32/64
 ;Az előző három eljárásgyűteményhez készítsünk (a megfelelő, megértést segítő szövegeket is tartalmazó!) példaprogramot, a következők szerint:
 ;IOPELDA.ASM (actest-ben L4a)
 ;Minden beolvasás előtt ki kell írni, hogy milyen számrendszerben kérjük a számot, kiíratásnál meg kell jelenjen, hogy milyen számrendszerben írattuk ki az aktuális sorban. Ellenőrizzük a határeseteket és a nagy értékeket is, egyik próba a 2.000.000.000.000 lesz.
@@ -13,7 +13,7 @@
 ;    -beolvas egy 32 bites bináris számot;
 ;    -kiírja a beolvasott értéket 10-es számrendszerben előjeles egészként, komplementer kódbeli ábrázolását 16-os és kettes számrendszerben;
 ;    -kiírja a három beolvasott érték összegét 10-es számrendszerben előjeles egészként, komplementer kódbeli ábrázolását 16-os és kettes számrendszerben;
-;    -ez előző lépéseket elvégzi 64 bites értékekre is.
+;  ez előző lépéseket elvégzi 64 bites értékekre is.
 
 %include 'mio.inc'
 %include 'iostr.inc'
@@ -49,7 +49,6 @@ main:
     jmp		.hiba
 .nem_hiba:
 
-
     mov   [osz1], ebx ; az elso szamom amely az osszegbe kerul, elmentem
     mov   eax,ebx
     mov   [var_a],eax
@@ -60,6 +59,7 @@ main:
     call  WriteInt
     mov   esi,uzenet2
     call  WriteStr
+    call  Write0x
     call  WriteHex
     call  NewLine
     mov   esi,uzenet3
@@ -87,15 +87,14 @@ main:
     call  WriteStr
     mov   eax, [var_a]
     call  WriteInt
-    ;mov   [osz2], eax ; a masodik szamom amely az osszegbe kerul, elmentem
     mov   esi,uzenet2
     call  WriteStr
+    call  Write0x
     call  WriteHex
     call  NewLine
     mov   esi,uzenet3
     call  WriteStr
     call  WriteBin
-    ;call  NewLine
 
 .hiba_bin:
     call  NewLine
@@ -118,9 +117,9 @@ main:
     call  WriteStr
     mov   eax,[var_a]
     call  WriteInt
-    ;mov   [osz3], eax ; a harmadik szamom amely az osszegbe kerul, elmentem
     mov   esi,uzenet2
     call  WriteStr
+    call  Write0x
     call  WriteHex
     call  NewLine
     mov   esi,uzenet3
@@ -137,16 +136,12 @@ main:
     xor   edx,edx
     mov   eax,[osz1]
     add   [osszeg],eax
-    call  WriteInt
-
 
     mov   eax,[osz2]
     add   [osszeg],eax
-    call  WriteInt
 
     mov   eax,[osz3]
     add   [osszeg],eax
-    call  WriteInt
 
     mov   esi,uzenet1
     call  WriteStr
@@ -158,18 +153,18 @@ main:
     mov   esi,uzenet2
     call  WriteStr
 
-    ;mov   eax,[osszeg]
+    call  Write0x
     call  WriteHex
     call  NewLine
 
     mov   esi,uzenet3
     call  WriteStr
 
-    ;mov   eax,[osszeg]
     call  WriteBin
     call  NewLine
 
 ; 64-bit
+
     xor 		eax, eax
   	xor 		ebx, ebx
   	xor 		ecx, ecx
@@ -242,6 +237,7 @@ main:
   	call 	NewLine
     mov 	esi, uzenet2
   	call 	WriteStr
+    call  Write0x
   	call 	WriteHex64
   	call 	NewLine
     mov 	esi, uzenet3

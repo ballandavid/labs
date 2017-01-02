@@ -22,8 +22,6 @@
 ;    ReadHex64():(EDX:EAX)     – 64 bites pozitív hexa beolvasása
 ;    WriteHex64(EDX:EAX):()     –                    - || -                   kiírása
 
-
-
 %include 'io.inc'
 %include 'mio.inc'
 %include 'iostr.inc'
@@ -43,10 +41,12 @@ global WriteBin64
 
 section .text
 
+; 32-bit
+
 ReadInt:
 xor		eax, eax ;lenullazom eax-et
 xor		ebx, ebx ;lenullazom ebx-et
-xor		ecx,ecx
+xor		ecx,ecx ;lenullazom ecx-et
 mov		edx,1
 
 mov		ecx,255
@@ -54,12 +54,12 @@ mov		edi,a
 call	ReadStr
 
 mov		esi,a
-xor		edi,edi
+xor		edi,edi ; feltetelezem hogy nem lesz hiba a feldat soran
 
-lodsb
+lodsb ; betoltom az elso karaktert, s novelem esi-t
 
 cmp		al,'-'
-jne		.pozitiv
+jne		.pozitiv ; ha nem '-' akkor ugrok a pozitiv esetre
 mov		edx,0
 
 .loop:
@@ -88,7 +88,7 @@ mov		edi,1
 .vege:
 cmp		edx,1
 je		.ugras
-neg		ebx
+neg		ebx ; ha negativ volt a szamom akkr most negalom
 
 .ugras:
 
@@ -96,11 +96,11 @@ call NewLine
 
 cmp		edi,1
 je		.ugras1
-clc
+clc ; nem volt hiba CF <-- 0
 ret
 
 .ugras1:
-stc
+stc ; volt hiba CF <-- 1
 ret
 
 WriteInt:
@@ -224,110 +224,102 @@ WriteHex:
 			push 	ecx
 			push 	edx
 
-			;mov		ebx,eax
-
 			xor		eax, eax
 			xor		ecx, ecx
+
 			mov		eax, ebx
-			mov		ebx, 16		;16-val fogom osztani a szamom amig nem 0
+			mov		ebx, 16		;ebx-el osztom a szamot amig nem nulla
 			push	dword -1
 
+.ciklus1:
+			xor 	edx, edx
+			div		ebx
 
-			.ciklus1:
-				xor 	edx, edx
-				div	ebx
+			push	edx ; sorba a verembe teszem
+			inc 	ecx
+			test	eax, eax
+			cmp		eax, 0
+			jne		.ciklus1
 
-				push	edx
-				inc 	ecx
-				test	eax, eax
-				cmp		eax, 0
-				jne		.ciklus1
-
-			;mov		eax,'0'
-			;call	mio_writechar
-			;mov		eax,'x'
-			;call	mio_writechar
-
-			mov		ebx,8		;1 byte-bol kell kivonjam hany osztas volt
-			sub		ebx,ecx		;ebx-be megkapom (8 - hany osztas)om volt
-			mov		ecx,ebx		;beteszem az ecx-be hogy annyiszor vegezzem el a ciklust
+			mov		ebx,8		;1 byte-ot hasznalok
+			sub		ebx,ecx		;(8 - hany osztas)
+			mov		ecx,ebx		;ecx-szer vegzem el a ciklust
 
 			cmp		ecx,0
-			je		.ugor
+			je		.ugras
 
 			mov		eax,'0'		;0-kat irok ki a szamom ele
-			.ciklus_nullak:
-				call	mio_writechar
-				dec		ecx
 
-				cmp		ecx,0
-				jg	.ciklus_nullak	;ecx-szer kiirom a 0-t a hexa szam ele
+.ki_nulla:
+			call	mio_writechar
+			dec		ecx
 
-			.ugor:
+			cmp		ecx,0
+			jg	.ki_nulla	;ecx-szer kiirom a 0-t a hexa szam ele
 
-			.ciklus2:
+.ugras:
+
+.ciklus2:
 				xor		eax,eax
-				pop		eax				; sorban kiveszem a verembol s megnezem ha 10 es 15 kozott van-e a szamom
-				cmp		eax, -1		;veszem az elemeket amig nem ures a verem
+				pop		eax				; veszem ki sorban a verembol
+				cmp		eax, -1		; amig nem ures a verem
 				je		.vege
 
 				cmp		eax,10
-				je		.plusz_ertek_A
+				je		.ertek_A
 
 				cmp		eax,11
-				je		.plusz_ertek_B
+				je		.ertek_B
 
 				cmp		eax,12
-				je		.plusz_ertek_C
+				je		.ertek_C
 
 				cmp		eax,13
-				je		.plusz_ertek_D
+				je		.ertek_D
 
 				cmp		eax,14
-				je		.plusz_ertek_E
+				je		.ertek_E
 
 				cmp		eax,15
-				je		.plusz_ertek_F
+				je		.ertek_F
 
-				add		eax,'0'		;megkapom az eax szambeli erteket
+				add		eax,'0'
 
-				.vissza:
+.vissza:
+			call	mio_writechar
+			jmp		.ciklus2
 
-				call	mio_writechar
-				jmp		.ciklus2
-
-			.plusz_ertek_A:
+.ertek_A:
 				xor		eax,eax
 				mov		eax,'A'
 				jmp		.vissza
 
-			.plusz_ertek_B:
+.ertek_B:
 				xor		eax,eax
 				mov		eax,'B'
 				jmp		.vissza
 
-			.plusz_ertek_C:
+.ertek_C:
 				xor		eax,eax
 				mov		eax,'C'
 				jmp		.vissza
 
-			.plusz_ertek_D:
+.ertek_D:
 				xor		eax,eax
 				mov		eax,'D'
 				jmp		.vissza
 
-			.plusz_ertek_E:
+.ertek_E:
 				xor		eax,eax
 				mov		eax,'E'
 				jmp		.vissza
 
-			.plusz_ertek_F:
+.ertek_F:
 				xor		eax,eax
 				mov		eax,'F'
 				jmp		.vissza
 
-		.vege:
-
+.vege:
 			pop 	edx
 			pop 	ecx
 			pop 	ebx
@@ -338,6 +330,7 @@ ReadBin:
 		mov		edi,a
 		call	ReadStr
 		mov		esi,a
+
 		xor		edi,edi
 		xor		ebx,ebx
 
@@ -354,7 +347,6 @@ ReadBin:
 
 		shl		ebx,1 ; mindenfelekepp tolok balra
 
-		;dec		ecx
 		cmp		al,'1'
 		je		.egy
 
@@ -370,12 +362,6 @@ ReadBin:
 .vege:
 		mov		eax,ebx
 
-		;cmp		ecx,223
-		;je		.jump
-		;mov		edi,1
-
-;.jump:
-
 		cmp		edi,1
 		jne		.ugras
 		stc
@@ -383,13 +369,10 @@ ReadBin:
 
 .ugras:
 		clc
-
 		ret
 
 WriteBin:
-		mov		ecx,32 ;32szer hajtom vegere a kiiratast
-		mov		edx,28 ;ha a 28.ik bitnel leszek, kiirok szokozt
-		;mov		ebx,eax
+		mov		ecx,32 ; 32szer hajtom vegre a kiiratast
 
 .loop:
 		cmp		ecx,0
@@ -412,7 +395,6 @@ WriteBin:
 		jmp		.loop
 
 .vege:
-
 		ret
 
 ; 64-bit
@@ -436,7 +418,7 @@ ReadInt64:
 		cmp 	bl, 0
 		je 		.vege
 		cmp 	bl, '-'
-		jne 		.ciklus
+		jne 	.ciklus
 
 		inc 	esi	;ha negativ tullepunk, majd a vegen lekezeljuk
 
@@ -445,13 +427,13 @@ ReadInt64:
 		inc 	esi
 
 		cmp		bl, 0
-		je		.ellenorzes
-		cmp 	bl, '0'
+		je		.ellenoriz
+		cmp 	bl,'0'
 		jl 		.hiba
-		cmp 	bl, '9'
+		cmp 	bl,'9'
 		jg 		.hiba
 
-		sub 		ebx, '0' ; ebx<--szamjegy
+		sub 	ebx, '0' ; ebx<--szamjegy
 
 		mov		edi, edx
 		mul		ecx
@@ -469,30 +451,30 @@ ReadInt64:
 
 		jmp		.ciklus
 
-		.hiba:
+.hiba:
 		mov 	edi, 1
 
-		.ellenorzes:
+.ellenoriz:
 		cmp 	edi, 1
-		je 		.vegehiba
+		je 		.vege_hiba
 
 		mov 	esi, str_decimalis64		;elovesszuk az eredeti stringet, nezzuk ha - volt
 		mov 	bl, [esi]
 		cmp 	bl, '-'						;ellenorizzuk ha negativ volt a szam
 		jne 		.vege
 		;negativ:
-		not 		eax
 		not 		edx
+		not 		eax
 		inc 		eax
-		adc 		edx, 0
+		adc 		edx, 0 ; carry eseten meg hozzaadjuk
 
-		.vege:
+.vege:
 		pop 		ecx
 		pop 		ebx
 		clc
 		ret
 
-		.vegehiba:
+.vege_hiba:
 		pop 		ecx
 		pop 		ebx
 		stc
@@ -505,7 +487,7 @@ WriteInt64:
 			push		edx
 
 			mov 		ecx,10
-			push 		dword-1						;majd a verem vege ellenorzesere
+			push 		dword-1
 
 			cmp 		edx,0
 			jge 			.ciklus
@@ -513,48 +495,48 @@ WriteInt64:
 		;negativ
 			mov 		[seged], eax
 			mov 		eax, '-'
-			call 			mio_writechar
+			call 		mio_writechar
 			mov 		eax, [seged]
 
-			not 		eax
 			not 		edx
-			add 		eax,1
+			not 		eax
+			inc			eax
 			adc 		edx,0
 
-		.ciklus:
-			mov 		ebx,eax					;elmentjuk az also 32 bit-et
-			mov			eax,edx					;dolgozunk a felso 32 bit-el
+.ciklus:
+			mov 		ebx,eax					;also 32 bit
+			mov			eax,edx					;felso 32 bit-el dolgozok
 
 			xor 		edx, edx
-			div 		ecx							;elosszuk a felso 32 bit-et (EDX)
-			xchg 		eax,ebx					;felcsereljuk
+			div 		ecx							;felso 32 bit-et (EDX)
+			xchg 		eax,ebx					;csere
 
-			div 		ecx							;elosszuk az also 32 bit-et (EAX)
-			push 		edx							;verembe a maradek
-			mov 		edx,ebx					;edx = felso 32 bit-et
+			div 		ecx							;also 32 bit-et (EAX)
+			push 		edx							;maradekot a verembe teszem
+			mov 		edx,ebx					;edx <-- felso 32 bit
 
 			cmp 		edx,0
-			je 			.also32
+			je 			.also_bitek
 
 			jmp 		.ciklus
 
-		.also32:
+.also_bitek:
 			xor 		edx, edx
-			div 		ecx							;elosszuk csak az also 32 bit-et
+			div 		ecx							;also 32 bit-et osztjuk
 			push		edx
-			test 		eax, eax					;amig 0 nem lesz
-			jnz 		.also32
+			test 		eax, eax				;amig nem 0
+			jnz 		.also_bitek
 
 
-		.verem:
+.stack:
 			pop 		eax
 			cmp			eax, -1
 			je 			.vege
 			add 		eax, '0'
 			call 		mio_writechar
-			jmp 		.verem
+			jmp 		.stack
 
-		.vege:
+.vege:
 			pop 		edx
 			pop 		eax
 			pop 		ecx
@@ -577,109 +559,122 @@ ReadHex64:
 		xor 	edx, edx
 
 .loop:
-			xor 	eax, eax
-			lodsb
-			test 	al, al
-			jz 		.vege
-			cmp 	al, '0'
-			jl 		.hiba
-			cmp		al, 'f'
-			jg 		.hiba
-			cmp 	al, '9'
-			jle 	.numb
-			cmp 	al, 'A'
-			jl 		.hiba
-			cmp 	al, 'F'
-			jle		.hchar
-			cmp 	al, 'a'
-			jl 		.hiba
-			mov 	ecx, ebx
-			shr 	ecx, 28
-			and 	ecx, edi
-			shl 	edx, 4
-			or	 	edx, ecx
-			shl 	ebx, 4
-			sub 	eax, 'a'
-			add 	eax, 10
-			add 	ebx, eax
-			jmp 	.loop
+		xor 	eax, eax
 
-		.hchar:
-			sub 	al, 'A'
-			add 	al, 10
-			mov 	ecx, ebx
-			shr 	ecx, 28
-			and 	ecx, edi
-			shl 	edx, 4
-			add 	edx, ecx
-			shl 	ebx, 4
-			add 	ebx, eax
-			jmp 	.loop
+		lodsb
 
-		.numb:
-			sub 	al, '0'
-			mov 	ecx, ebx
-			shr 	ecx, 28
-			and 	ecx, edi
-			shl 	edx, 4
-			add 	edx, ecx
-			shl 	ebx, 4
-			add 	ebx, eax
-			jmp 	.loop
+		test 	al,al
+		jz 		.vege  ; ZF = 0 ?
+
+		cmp 	al, '0'
+		jl 		.hiba
+
+		cmp		al, 'f'
+		jg 		.hiba
+
+		cmp 	al, '9'
+		jle 	.szam
+
+		cmp 	al, 'A'
+		jl 		.hiba
+
+		cmp 	al, 'F'
+		jle		.fbetu
+
+		cmp 	al, 'a'
+		jl 		.hiba
+
+		mov 	ecx, ebx
+		shr 	ecx, 28
+
+		and 	ecx, edi
+		shl 	edx, 4
+
+		or	 	edx, ecx
+		shl 	ebx, 4
+
+		sub 	eax, 'a'
+		add 	eax, 10
+		add 	ebx, eax
+		jmp 	.loop
+
+.fbetu:
+		sub 	al, 'A'
+		add 	al,10
+
+		mov 	ecx,ebx
+		shr 	ecx,28
+
+		and 	ecx, edi
+		shl 	edx,4
+
+		add 	edx, ecx
+		shl 	ebx,4
+
+		add 	ebx, eax
+		jmp 	.loop
+
+.szam:
+		sub 	al, '0'
+		mov 	ecx, ebx
+		shr 	ecx,28
+
+		and 	ecx, edi
+		shl 	edx,4
+
+		add 	edx, ecx
+		shl 	ebx,4
+
+		add 	ebx, eax
+		jmp 	.loop
 
 .hiba:
 		pop 	edi
 		pop 	edx
 		pop 	ecx
+
 		stc
 		ret
 
 .vege:
-		mov 	eax, ebx
+		mov 	eax,ebx
+
 		pop 	edi
 		pop		ebx
 		pop 	ecx
+
 		clc
 		ret
 
 WriteHex64:
-pusha
-xchg 	eax, edx
-call 	WriteHex
-mov 	ecx, 8
+		pusha ; altalanos regisztereket elmentem
+
+		xchg 	edx,eax
+		call 	WriteHex
+		mov 	ecx, 8
 
 .loop:
-mov 	eax, 15
-rol 	edx, 4
-and 	eax, edx
-cmp 	al, 10
-jl 		.small
-add 	al, 'A'
-sub 	al, 10
-jmp 	.next
-.small:
-add 	al, '0'
-.next:
-call 	mio_writechar
-loop 	.loop
-.end:
-popa
-ret
-			;push 	eax
-			;push 	edx
+		mov 	eax, 15
+		rol 	edx, 4 ; balra forgat 4-vel
+		and 	eax, edx
 
-			;push 	eax
+		cmp 	al, 10
+		jl 		.kicsi
 
-			;mov 	eax,edx
-			;call 	WriteHex
+		add 	al, 'A'
+		sub 	al, 10
+		jmp 	.ugras
 
-			;pop 	eax
-			;call 	WriteHex
+.kicsi:
+		add 	al, '0'
 
-			;pop 	edx
-			;pop 	eax
+.ugras:
+		call 	mio_writechar
+		loop 	.loop
 
-			;ret
+.vege:
+		popa
+		ret
 
 ReadBin64:
 		push 	esi
@@ -701,121 +696,86 @@ ReadBin64:
 		je 		.hiba
 		dec 		ecx
 
-				xor 		eax, eax			;kitakaritsuk lodsb elott, majd az osszeadasnal ne legyen problema
-				lodsb
-				cmp 	al, 0
-				je 		.vege
-				cmp 	al, '0'
-				jl			.hiba
-				cmp 	al, '1'
-				jg 		.hiba
+		xor 		eax, eax
 
-				sub 		eax,'0'
-				shl 		edx, 1				;EDX balra eloszor, mert az a felso 32 bit
-				shl 		ebx, 1				;EBX balra 1-el (majd EAX = EBX), also 32 bit
-				adc 		edx, 0				;also 32 bit-bol ha van carry akkor hozzaadja a felso 32 bit-hez
-				add 		ebx, eax
-				jmp 		.ciklus
+		lodsb
 
-				.hiba:
-				mov 	edi, 1
+		cmp 	al, 0
+		je 		.vege
 
-			.vege:
-				mov 	eax, ebx			;eax-ban kell legyen az eredmeny egyik resze
-				clc
-				cmp		edi, 1
-				jne 		.pop
-				stc
+		cmp 	al, '0'
+		jl			.hiba
 
-			.pop:
-				pop 	edi
-				pop 	ebx
-				pop 	ecx
-				pop 	esi
+		cmp 	al, '1'
+		jg 		.hiba
 
-				ret
+		sub 		eax,'0'
+		shl 		edx,1
+		shl 		ebx,1
+		adc 		edx,0
+		add 		ebx, eax
+		jmp 		.ciklus
+
+.hiba:
+		mov 	edi, 1
+
+.vege:
+		mov 	eax, ebx
+
+		clc ; feltetelezem hogy hiba nem volt
+		cmp		edi, 1
+		jne 	.ki_verem
+		stc ; volt hiba. CF <-- 1
+
+.ki_verem:
+		pop 	edi
+		pop 	ebx
+		pop 	ecx
+		pop 	esi
+
+		ret
 
 WriteBin64:
 		push	eax
 		push 	ebx
 		push 	ecx
 		push 	edx
-		push 	edi					;EDI-vel szamoljuk, ha lejart az elso 32 bit kiirasa
+		push 	edi
 
-				mov 	[bin64], eax		;Elmentsuk az EDX-et,azaz a felso 32 bit-et
-				mov 	ebx, edx			;EBX-el dolgozik a fuggveny
-				xor 		edi, edi
-				mov 	edi, 2
+		mov 	[bin64], eax
+		mov 	ebx, edx			;EBX-el dolgozok
 
-			.ciklus64:
-				cmp 	edi, 0
-				je 		.vege
-				mov 	ecx, 32				;ECX lesz a szamlalo
+		xor 	edi, edi
+		mov 	edi, 2
 
-			.mozgat_bit:
-				mov		al, '1'
-				sal		ebx, 1				;Shift aritmetic left
-				jc 		.kiir_bit				;ha 1 lesz, akkor az al-ben is 1 lesz es ugrunk a kiirashoz
-				mov 	al, '0'				;CF 0 volt
+.ciklus:
+		cmp 	edi, 0
+		je 		.vege
+		mov 	ecx, 32				;ECX-el szamolok
 
-			.kiir_bit:
-				call		mio_writechar		;kiirjuk az al-t
-				dec		ecx					;csokkentsuk az ECX-t
+.bit_move:
+		mov		al,'1'
+		sal		ebx, 1		; balra tol
+		jc 		.kiir				;ha 1 lesz, akkor az al-ben is 1 lesz es ugrunk a kiirashoz
+		mov 	al, '0'				;CF 0 volt
 
-				;megnezzuk ha a szamlalo 4 tobbszorose ( utolso 2 bit 0 ha 4 tobbszorose)
-				mov 	edx, ecx
-				and 		edx, 3				;3 00000011 binarisban
-				jnz 		.ellenorizd_vege
+.kiir:
+		call	mio_writechar
+		dec		ecx					;csokken az ECX
 
-				mov 	al, ' '
-				call	mio_writechar		;kiirjuk a szokozt
+		cmp 	ecx, 0				;vege?
+		jnz 	.bit_move
+		dec 	edi
+		mov 	ebx, [bin64]
+		jmp 	.ciklus
 
-			.ellenorizd_vege:
-				cmp 	ecx, 0				;megnezzuk ha vege
-				jnz 		.mozgat_bit			;folytassuk, ha ecx nem 0
-				dec 		edi
-				mov 	ebx, [bin64]
-				jmp 		.ciklus64
-
-			.vege:
-				pop 	edi
-				pop 	edx
-				pop 	ecx
-				pop 	ebx
-				pop 	eax
-				ret
-
-;main:
-;.hiba:
-;	call	ReadInt
-;	jnc		.nem_hiba
-;	jmp		.hiba
-;.nem_hiba:
-;
-;	call	WriteInt
-
-;.hiba_hex:
-;	call	ReadHex
-;	jnc		.nem_hiba_hex
-;	call	NewLine
-;	jmp		.hiba_hex
-;.nem_hiba_hex:
-
-;	call	NewLine
-
-;	call	WriteHex
-
-;	call	NewLine
-
-;	call	ReadBin
-
-;	call	NewLine
-
-;	call	WriteBin
-
-;	call	NewLine
-
-;	ret
+.vege:
+		pop 	edi
+		pop 	edx
+		pop 	ecx
+		pop 	ebx
+		pop 	eax
+		ret
 
 section .bss
 	a resb 256

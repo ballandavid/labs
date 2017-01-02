@@ -1,7 +1,7 @@
 ;nev: Ballan David-Lajos
 ;azonosito: bdim1597
 ;csoportszam: 511
-;feladat: L4_4_b
+;feladat: L4_4b
 ;A stringek olvasását egyszerre lehet bemutatni a stringeken végzett műveletekkel.
 ;Mindkét stringnek kiírjuk a hosszát, kompaktált formáját, majd a kompaktált formát kis betűkre alakítva és nagy betűkre alakítva.
 ;Végül hozzáfűzzük az első string nagybetűs verziójához a második string kisbetűs verzióját és kiírjuk a hosszával együtt.
@@ -37,13 +37,9 @@ main:
   call  ReadLnStr
 
   mov   esi,a
-  call  StrLen ;ha a string tobb mint 9 akkor
+  call  StrLen
 
   call  WriteInt
-  ;add   eax,'0'
-  ;call  mio_writechar
-
-  call  NewLine
 
   mov   esi,a
   call  StrCompact
@@ -68,13 +64,9 @@ main:
   call  ReadLnStr
 
   mov   esi,b
-  call  StrLen ;ha a string tobb mint 9 akkor
+  call  StrLen
 
   call  WriteInt
-  ;add   eax,'0'
-  ;call  mio_writechar
-
-  call  NewLine
 
   mov   esi,b
   call  StrCompact
@@ -109,13 +101,11 @@ main:
   call  WriteLnStr
 
   mov   esi,c
-  call  StrLen ;ha a string tobb mint 9 akkor
+  call  StrLen
 
   call  WriteInt
-  ;add   eax,'0'
-  ;call  mio_writechar
 
-ret
+  ret
 
 section .bss
   a resb 256

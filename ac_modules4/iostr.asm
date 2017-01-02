@@ -13,9 +13,7 @@
 ;WriteLnStr(ESI):()                         – mint a WriteStr() csak újsorba is lép
 ;NewLine():()                               – újsor elejére lépteti a kurzort
 
-
 %include 'mio.inc'
-
 
 global ReadStr
 global WriteStr
@@ -82,26 +80,30 @@ ReadLnStr:
 	call    mio_readchar
 	cmp		al,13
 	je		.vege
-	call	mio_writechar
 
 	cmp		ecx,0
 	je		.ciklus
 
-	dec		ecx
-
 	cmp		al,8
 	jne		.ugras
 
+	cmp		ecx,255		; megnezem ha a karlanc elejen vagyok
+	je		.ciklus
+
+	call	mio_writechar
 	mov		al,' '
 	call	mio_writechar
 	mov		al,8
 	call	mio_writechar
 
 	inc		ecx
-	je		.ciklus
+	dec 	edi
+	jmp		.ciklus
 
 .ugras:
-	stosb
+	call	mio_writechar		;kiiratom a karaktert
+	dec		ecx ; csokkentem, mert egy karakter bekerult
+	stosb ; betolti oda ahova az edi mutat
 	jmp		.ciklus
 
 .vege:

@@ -13,7 +13,6 @@
 %include 'mio.inc'
 %include 'iostr.inc'
 
-;global main
 global StrLen
 global StrCat
 global StrUpper
@@ -35,8 +34,7 @@ StrLen:
 
 .vege:
   mov  eax,ebx
-  ;add eax,'0'
-  ;call mio_writechar
+
   pop   esi
   ret
 
@@ -124,42 +122,6 @@ StrCompact:
 .vege:
   pop   edi
   ret
-
-;main:
-  ;mov		edi,a
-  ;mov		ecx, 255
-  ;call 	ReadStr
-
-  ;mov   esi,a
-  ;call  StrLen
-
-  ;mov   edi,a
-  ;mov		ecx, 255
-  ;call 	ReadLnStr
-
-  ;call  NewLine
-
-  ;mov   edi,b
-  ;mov		ecx, 255
-  ;call 	ReadStr
-
-  ;call  NewLine
-
-  ;mov   edi,a
-  ;mov   esi,b
-  ;call  StrCat
-
-  ;mov   esi,a
-  ;call  WriteLnStr
-
-  ;mov   esi,a
-  ;mov   edi,b
-  ;call  StrCompact
-
-  ;mov   esi,b
-  ;call  WriteLnStr
-
-;ret
 
 section .bss
   a resb 256
