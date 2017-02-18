@@ -18,7 +18,7 @@ int sim(int b, int j)
     //else
    //     {
             if(x < tipp)
-                sim(b, tipp-1);
+                sim(b, tipp);
             else
             {
                 if(tipp < x)
