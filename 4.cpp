@@ -1,49 +1,37 @@
 /*Player1 (user) picks a number between [0, 1000]. Player2 (computer) has to guess this number.
-For each tip player1 says if the secret number is bigger or smaller. (divide et impera)*/
+ For each tip player1 says if the secret number is bigger or smaller. (divide et impera)*/
 
 # include <iostream>
 # include <time.h> // time function
 # include <cstdlib> // random function
 using namespace std;
 
-int x; // secret number
+int sim(int secret, int b, int j) {
+	int tip = (rand() % (j - b) + b); // computer guesses between [b, j]
+	cout << tip << " ";
 
-int sim(int b, int j)
-{
-    int tipp = (rand() % (j-b) + b); // computer guesses between [b, j]
-    cout << tipp << " ";
+	if (secret < tip) {
+		sim( secret, b, tip);
+	} else if (secret > tip) {
+		sim(secret, tip + 1, j);
+	}
 
-    //if(b > j)
-    //    return -1;
-    //else
-   //     {
-            if(x < tipp)
-                sim(b, tipp);
-            else
-            {
-                if(tipp < x)
-                    sim(tipp+1, j);
-                else
-                    return tipp;
-            }
-      //  }
+	// this is the number, game over
+	cout << "You win" << endl;
+	return tip;
 }
 
-int main()
-{
-    time_t t;
-    srand(time(&t)); // declaration for random function
+int main() {
+	time_t t;
+	srand(time(&t)); // declaration for random function
 
-    cout << "Type in secret number [0,1000]" << endl;
-    cin >> x;
+	int secret = -1;
 
-    sim(0, 1001);
+	// need to do input validation that secret is between 0 and 1000
+	while( secret < 0 || secret > 1000) {
+		cout << "Type in secret number [0,1000]" << endl;
+		cin >> secret;
+	}
 
-    /*for(int i = 1; i <= 20; i++)
-    {
-        int b = 5, j = 10;
-        int tipp = (rand() % j + b); // [b, b+j]
-        cout << tipp << " ";
-    }*/
-
+	sim(secret, 0, 1001);
 }
