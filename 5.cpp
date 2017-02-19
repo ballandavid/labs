@@ -6,37 +6,34 @@
 # include <cstdlib> // random function
 using namespace std;
 
-int sim(int secret, int b, int j) {
+void sim(int secret, int b, int j) {
 	int tip = 0;
 
-	cout << "Guess the number in [" << b << ", " << j << "]" << endl;
-	cout << "Tip = ";
+	cout << "Guess the number in [" << b << ", " << j << "]: ";
 	cin >> tip;
 	cout << endl;
 
 	if (tip < b || tip > j) {
 		cout << "Your guess is not in the expected interval!" << endl;
-		sim( secret, b, j);
 	} else if (tip > secret) {
 		cout << "The secret number is SMALLER" << endl;
 		sim(secret,b, tip - 1);
 	} else if (tip < secret) {
 		cout << "The secret number is BIGGER" << endl;
 		sim(secret,tip + 1, j);
+	} else {
+		cout << tip << " was the SECRET number!";
 	}
-
-	cout << tip << " was the SECRET number!";
-
-	return 0;
 }
 
-int main() {
+int main( int argc, char** argv) {
 	time_t t;
-	srand(time(&t)); // declaration for random function
+	srand(time(&t)); // seed the random number generator
 
 	cout << "The computer picked a number" << endl << "x = ?" << endl;
 	int secret = rand() % 1000;
 
-	cout << endl << "Your guess: " << endl << endl;
 	sim( secret, 0, 1000);
+
+	return 0;
 }
