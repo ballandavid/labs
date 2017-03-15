@@ -1,14 +1,17 @@
 #include "lab01_1b.h"
 
+/**
+* Traverse the square matrix in a spiral. Input:
+* matrix -  the matrix as a single dimensional vector 
+* n - the number of rows of rows and columns
+*/
 void SpiralSorrend(const int* matrix, int n, int* spiral)
 {
-	int count = n*n;
-	
 	int dir = 0; // 0 - right, 1 - down, 2 - left, 3 - up
 	int iteration = 1;
 	int count_per_iteration = n;
 	
-	// start from the "previous" position. Since we go "right" from the first row and col, that's [0, -1]
+	// start from the "previous" position. Since we go "right" from the first row and col, we must start at [0, -1]
 	int row = 0;
 	int col = -1;
 	
@@ -19,7 +22,7 @@ void SpiralSorrend(const int* matrix, int n, int* spiral)
 		// read the full count for the current iteration
 		for( int i = 0; i < count_per_iteration; ++i) 
 		{
-			// increment the row/col based on the current direction
+			// increment the row/col based on the current direction. 
 			if ( dir == 0) {
 				++col;
 			} else if ( dir == 1) {
@@ -30,7 +33,7 @@ void SpiralSorrend(const int* matrix, int n, int* spiral)
 				--row;
 			}
 			
-			// read the current position
+			// read the current position in the matrix
 			*spiral++ = matrix[ row*n+col];
 		}
 		
@@ -38,12 +41,9 @@ void SpiralSorrend(const int* matrix, int n, int* spiral)
 		dir = (dir + 1) % 4;
 		
 		// the count per iterations decreases by 1 after every 2 iterations
-		if ( iteration == 1) {
+		if ( --iteration == 0) {
 			iteration = 2;
 			--count_per_iteration;
-		} else {
-			--iteration;
-		}
+		} 
 	}
-		
 }
